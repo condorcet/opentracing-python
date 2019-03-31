@@ -20,6 +20,7 @@
 
 from __future__ import absolute_import
 
+import contextlib
 import threading
 import tornado.stack_context
 
@@ -83,55 +84,6 @@ class TornadoScopeManager(ThreadLocalScopeManager):
 
                 yield [res1, res2]
     """
-
-    def activate(self, span, finish_on_close):
-        """
-        Make a :class:`~opentracing.Span` instance active.
-
-        :param span: the :class:`~opentracing.Span` that should become active.
-        :param finish_on_close: whether *span* should automatically be
-            finished when :meth:`Scope.close()` is called.
-
-        If no :func:`tracer_stack_context()` is detected, thread-local
-        storage will be used to store the :class:`~opentracing.Scope`.
-        Observe that in this case the active :class:`~opentracing.Span`
-        will not be automatically propagated to the child corotuines.
-
-        :return: a :class:`~opentracing.Scope` instance to control the end
-            of the active period for the :class:`~opentracing.Span`.
-            It is a programming error to neglect to call :meth:`Scope.close()`
-            on the returned instance.
-        """
-
-        context = self._get_context()
-        if context is None:
-            return super(TornadoScopeManager, self).activate(span,
-                                                             finish_on_close)
-
-        scope = _TornadoScope(self, span, finish_on_close)
-        context.active = scope
-
-        return scope
-
-    @property
-    def active(self):
-        """
-        Return the currently active :class:`~opentracing.Scope` which
-        can be used to access the currently active
-        :attr:`Scope.span`.
-
-        :return: the :class:`~opentracing.Scope` that is active,
-            or ``None`` if not available.
-        """
-
-        context = self._get_context()
-        if not context:
-            return super(TornadoScopeManager, self).active
-
-        return context.active
-
-    def _get_context(self):
-        return _TracerRequestContextManager.current_context()
 
 
 class _TornadoScope(Scope):
@@ -246,6 +198,15 @@ class _TracerRequestContextManager(object):
         return False
 
 
+def dummy_cb():
+    pass
+
+
+@contextlib.contextmanager
+def dummy_context():
+    yield dummy_cb
+
+
 def tracer_stack_context():
     """
     Create a custom Tornado's :class:`StackContext` that allows
@@ -274,7 +235,8 @@ def tracer_stack_context():
         :class:`TornadoScopeManager` to activate and propagate
         :class:`~opentracing.Span` instances.
     """
-    context = _TracerRequestContext()
-    return ThreadSafeStackContext(
-            lambda: _TracerRequestContextManager(context)
-    )
+    # context = _TracerRequestContext()
+    # return ThreadSafeStackContext(
+    #         lambda: _TracerRequestContextManager(context)
+    # )
+    return dummy_context()

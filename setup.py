@@ -38,7 +38,7 @@ setup(
 
             'six>=1.10.0,<2.0',
             'gevent==1.2',
-            'tornado',
+            'tornado<6',
         ],
         ':python_version == "2.7"': ['futures'],
     },
