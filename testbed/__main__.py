@@ -1,6 +1,7 @@
 from importlib import import_module
 import logging
 import os
+import sys
 import six
 import unittest
 
@@ -47,4 +48,6 @@ for test_dir in get_test_directories():
         suite = loader.loadTestsFromModule(test_module)
         main_suite.addTests(suite)
 
-unittest.TextTestRunner(verbosity=3).run(main_suite)
+result = unittest.TextTestRunner(verbosity=3).run(main_suite)
+if result.failures:
+    sys.exit(1)

@@ -15,6 +15,7 @@ class TestAsyncio(OpenTracingTestCase):
         self.loop = asyncio.get_event_loop()
 
     def test_main(self):
+        assert False
         res = self.loop.run_until_complete(self.parent_task('message'))
         self.assertEqual(res, 'message::response')
 
