@@ -20,6 +20,7 @@
 
 from __future__ import absolute_import
 
+from contextlib import contextmanager
 from contextvars import ContextVar
 
 from opentracing import Scope
@@ -101,3 +102,12 @@ class _AsyncioScope(Scope):
 
         if self._finish_on_close:
             self.span.finish()
+
+
+@contextmanager
+def null_scope():
+    token = _SCOPE.set(None)
+    try:
+        yield
+    finally:
+        _SCOPE.reset(token)
